@@ -13,4 +13,4 @@ function build_and_push(){
 
 export SWOOLE_VERSION=4.6.4
 export VERSION=0.0.1
-build
+build_and_push

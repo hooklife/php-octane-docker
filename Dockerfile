@@ -26,6 +26,9 @@ RUN set -ex; \
     && apk update \
     && apk add --no-cache \
     # Install base packages ('ca-certificates' will install 'nghttp2-libs')
+    libstdc++ \
+    openssl \
+    tini \
     tzdata \
     php8 \
     php8-bcmath \
@@ -64,10 +67,10 @@ RUN set -ex; \
     && ln -s /usr/bin/phpize8 /usr/local/bin/phpize \
     && ln -s /usr/bin/php-config8 /usr/local/bin/php-config \
     && ( \
-        cd swoole \
-        && phpize \
-        && ./configure --enable-openssl --enable-http2 --enable-swoole-curl --enable-swoole-json \
-        && make -s -j$(nproc) && make install \
+    cd swoole \
+    && phpize \
+    && ./configure --enable-openssl --enable-http2 --enable-swoole-curl --enable-swoole-json \
+    && make -s -j$(nproc) && make install \
     ) \
     # install composer
     && ln -sf /usr/bin/php8 /usr/bin/php \
@@ -80,10 +83,11 @@ RUN set -ex; \
     && echo -e "\033[42;37m Build Completed :).\033[0m\n"
 
 COPY rootfs /
+
 EXPOSE 80
 WORKDIR /app
 ENTRYPOINT ["/sbin/tini", "--"]
-
+CMD ["php","artisan","octane:start","--host=0.0.0.0","--port=80"]
 
 
 FROM main as dev
@@ -99,4 +103,4 @@ RUN apk add -U --no-cache \
     && rm -rf /var/cache/apk/* \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && composer --version
-CMD ["php","/app/artisan","octane:start","--watch" ]
+CMD ["php","/app/artisan","octane:start","--host=0.0.0.0","--port=80","--watch" ]
